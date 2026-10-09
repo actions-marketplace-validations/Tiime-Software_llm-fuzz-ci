@@ -54,6 +54,9 @@ jobs:
         with:
           test-paths: tests
           openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          model: gpt-6-astra
+          price-input-per-million: "10.00" # USD per million tokens, see Budgets with Codex
+          price-output-per-million: "50.00"
 
       - uses: actions/upload-artifact@v7
         with:
@@ -136,6 +139,8 @@ def test_transfer(llm_fuzz_case):
 | `openrouter-api-key` |         | key for `provider: openrouter`               |
 | `anthropic-api-key`  |         | key for `claude`                             |
 | `max-budget-usd`     |         | override every marker budget                 |
+| `price-input-per-million`  |   | Codex: model price, USD per million input tokens |
+| `price-output-per-million` |   | Codex: model price, USD per million output tokens |
 | `timeout-seconds`    | `600`   | maximum generation time per target           |
 | `show-usage`         | `false` | print the agent's token usage                |
 
@@ -185,6 +190,36 @@ Set `hard-fail: false` when you do that, or the job dies before your step runs.
 | ----------------- | --------------------------------------------------------------------- |
 | `codex` (default) | `openai-api-key`, or `openrouter-api-key` with `provider: openrouter` |
 | `claude`          | `anthropic-api-key`                                                   |
+
+### Budgets with Codex
+
+Codex counts tokens, not dollars. To enforce `budget_usd` it needs the model's
+prices, so a Codex run with a budget and no prices stops before any agent runs.
+
+Set `model` as well. Codex's default model changes between versions, and the
+prices must match the model that runs. Prices as listed in September 2026, USD
+per million tokens; check your provider's page before you rely on them:
+
+| Model                          | Input | Output |
+| ------------------------------ | ----: | -----: |
+| `gpt-6-astra`                  | 10.00 |  50.00 |
+| `mistralai/mistral-large-4-0`  |  0.68 |   2.09 |
+
+```yaml
+with:
+  agent: codex
+  provider: openrouter
+  model: mistralai/mistral-large-4-0
+  openrouter-api-key: ${{ secrets.OPENROUTER_API_KEY }}
+  price-input-per-million: "0.68"
+  price-output-per-million: "2.09"
+```
+
+The action turns each budget into a Codex token limit, weighted by those
+prices, and Codex aborts the test's run when it is used up. The check happens
+between model replies, so one reply can overshoot the budget. Codex marks this
+feature as under development. For a hard cap, also set a credit limit on the
+key at your provider.
 
 ## Command line
 
