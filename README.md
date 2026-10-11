@@ -142,7 +142,7 @@ def test_transfer(llm_fuzz_case):
 | `price-input-per-million`  |   | Codex: model price, USD per million input tokens |
 | `price-output-per-million` |   | Codex: model price, USD per million output tokens |
 | `timeout-seconds`    | `600`   | maximum generation time per target           |
-| `show-usage`         | `false` | print the agent's token usage                |
+| `show-usage`         | `false` | print the agent's token usage and cost       |
 
 `llm-fuzz-ci report`, step 3:
 
@@ -169,7 +169,7 @@ The `llm-fuzz-ci` artifact holds the whole run:
 | `targets.json`                  | the marked tests it was pointed at              |
 | `reports/llm-fuzz-ci-report.md` | the same summary, unfolded                      |
 | `reports/test-report.json`      | one record per input, for processing            |
-| `reports/llm-usage.json`        | tokens spent                                    |
+| `reports/llm-usage.json`        | tokens and dollars spent                        |
 | `reports/agent-trace/`          | per test, what the agent reasoned, ran, and saw |
 
 All of the following are off unless you turn them on.
@@ -179,6 +179,14 @@ All of the following are off unless you turn them on.
 **An email.** GitHub emails the assignee of an issue, use`issue-assignees: you` and `issue-labels`.
 
 **A red build.** `hard-fail: true`, the default. The failure is the last thing the action does, so the summary, the artifact and the issue all land first. It fails the job, which skips the steps after it and any job that `needs:` it; jobs already running in parallel are not cancelled.
+
+**A badge.** Add the workflow's status badge to your README. It shows the last run on a branch: green when it passed, red when it failed.
+
+```markdown
+[![LLM Fuzz CI](https://github.com/OWNER/REPO/actions/workflows/llm-fuzz-ci.yml/badge.svg?branch=main)](https://github.com/OWNER/REPO/actions/workflows/llm-fuzz-ci.yml)
+```
+
+Replace `OWNER/REPO` and use the file name of your workflow. The badge is red only while `hard-fail: true` (the default) fails the job on a failing input. With `hard-fail: false` it stays green, so keep the default if you want the badge to track the fuzzing result. Scheduled and manual runs count too. On a private repository only people with access see the status. Without `?branch=main` the badge follows the latest run on any branch.
 
 **Anything else.** The action outputs `failed-inputs`, so a step of your own can post to Slack, Teams, or a pager:
 
