@@ -180,6 +180,14 @@ All of the following are off unless you turn them on.
 
 **A red build.** `hard-fail: true`, the default. The failure is the last thing the action does, so the summary, the artifact and the issue all land first. It fails the job, which skips the steps after it and any job that `needs:` it; jobs already running in parallel are not cancelled.
 
+**A badge.** Add the workflow's status badge to your README. It shows the last run on a branch: green when it passed, red when it failed.
+
+```markdown
+[![LLM Fuzz CI](https://github.com/OWNER/REPO/actions/workflows/llm-fuzz-ci.yml/badge.svg?branch=main)](https://github.com/OWNER/REPO/actions/workflows/llm-fuzz-ci.yml)
+```
+
+Replace `OWNER/REPO` and use the file name of your workflow. The badge is red only while `hard-fail: true` (the default) fails the job on a failing input. With `hard-fail: false` it stays green, so keep the default if you want the badge to track the fuzzing result. Scheduled and manual runs count too. On a private repository only people with access see the status. Without `?branch=main` the badge follows the latest run on any branch.
+
 **Anything else.** The action outputs `failed-inputs`, so a step of your own can post to Slack, Teams, or a pager:
 
 Set `hard-fail: false` when you do that, or the job dies before your step runs.
